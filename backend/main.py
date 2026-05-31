@@ -28,24 +28,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize clients
-supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
-supabase = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
+# Initialize clients (with error handling for missing env vars)
+supabase = None
+try:
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
+    if supabase_url and supabase_key:
+        supabase = create_client(supabase_url, supabase_key)
+except Exception as e:
+    print(f"Warning: Could not initialize Supabase client: {e}")
 
-anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-anthropic_client = Anthropic(api_key=anthropic_key) if anthropic_key else None
+anthropic_client = None
+try:
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key and anthropic_key != "sk-ant-api03-...":
+        anthropic_client = Anthropic(api_key=anthropic_key)
+except Exception as e:
+    print(f"Warning: Could not initialize Anthropic client: {e}")
 
 # R2 client (S3-compatible)
 r2_client = None
-if os.getenv("R2_ACCESS_KEY_ID"):
-    r2_client = boto3.client(
-        "s3",
-        endpoint_url=os.getenv("R2_ENDPOINT"),
-        aws_access_key_id=os.getenv("R2_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("R2_SECRET_ACCESS_KEY"),
-        region_name="auto",
-    )
+try:
+    if os.getenv("R2_ACCESS_KEY_ID"):
+        r2_client = boto3.client(
+            "s3",
+            endpoint_url=os.getenv("R2_ENDPOINT"),
+            aws_access_key_id=os.getenv("R2_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("R2_SECRET_ACCESS_KEY"),
+            region_name="auto",
+        )
+except Exception as e:
+    print(f"Warning: Could not initialize R2 client: {e}")
 
 
 # JWT verification

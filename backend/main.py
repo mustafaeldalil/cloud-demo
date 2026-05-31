@@ -174,7 +174,7 @@ async def chat(request: ChatRequest, user: dict = Depends(verify_token)):
     
     try:
         message = anthropic_client.messages.create(
-            model="claude-3-5-haiku-latest",
+            model="claude-3-sonnet-20240229",
             max_tokens=1024,
             messages=[
                 {"role": "user", "content": request.message}
